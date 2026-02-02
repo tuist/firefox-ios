@@ -30,7 +30,7 @@ final class MerinoProvider: MerinoStoriesProviding, FeatureFlaggable, @unchecked
     }
 
     init(
-        withThresholdInHours threshold: Double = 4,
+        withThresholdInHours threshold: Double = 1,
         prefs: Prefs,
         cache: CuratedRecommendationsCacheProtocol = CuratedRecommendationCacheUtility(),
         logger: Logger = DefaultLogger.shared,

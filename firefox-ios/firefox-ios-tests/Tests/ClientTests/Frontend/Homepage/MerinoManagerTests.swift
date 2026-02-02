@@ -25,6 +25,12 @@ final class MerinoManagerTests: XCTestCase {
         XCTAssertEqual(storyProvider.fetchDiscoverMoreStoriesCalled, 1)
     }
 
+    func test_prefetchStories_callsFetchHomepageStories() async {
+        let subject = createSubject(with: storyProvider)
+        await subject.prefetchStories()
+        XCTAssertEqual(storyProvider.fetchHomepageStoriesCalled, 1)
+    }
+
     private func createSubject(
         with storyProvider: MockStoryProvider,
         file: StaticString = #filePath,

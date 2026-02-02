@@ -221,6 +221,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, FeatureFlaggable {
         updateWallpaperMetadata()
         loadBackgroundTabs()
         ingestFirefoxSuggestions(in: application)
+        prefetchMerinoStories()
         logger.log("applicationDidBecomeActive end",
                    level: .info,
                    category: .lifecycle)
@@ -285,6 +286,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, FeatureFlaggable {
                 self?.isLoadingBackgroundTabs = false
                 self?.backgroundTabLoader.loadBackgroundTabs()
             }
+        }
+    }
+
+    private func prefetchMerinoStories() {
+        Task(priority: .utility) {
+            let merinoManager: MerinoManagerProvider = AppContainer.shared.resolve()
+            await merinoManager.prefetchStories()
         }
     }
 
