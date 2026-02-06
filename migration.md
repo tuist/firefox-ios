@@ -131,3 +131,29 @@
 - 2026-02-06 07:12 CET: `tuist cache --path firefox-ios --configuration Fennec` still failed after excluding `FocusAppServices`, due to `TestKit` importing XCTest. Fixed by adding `XCTest` as an SDK dependency for `TestKit`.
 - 2026-02-06 07:18 CET: Made `FocusAppServices` optional in `MozillaRustComponents/Project.swift` via `TUIST_INCLUDE_FOCUS` (default `false`) to avoid the duplicate xcframework output name clash in cache builds. Run with `TUIST_INCLUDE_FOCUS=1` when building Focus.
 - 2026-02-06 07:24 CET: `tuist cache --path firefox-ios --configuration Fennec` now succeeds end-to-end and stores 4 cacheable BrowserKit frameworks (`ContentBlockingGenerator`, `JWTKit`, `MenuKit`, `VoiceSearchKit`).
+- 2026-02-06 07:46 CET: Tried `tuist generate --path .` from repo root and hit `fewer than 2 identifiers in version core '15'`.
+  - Root cause: repo root contains a `Package.swift` (Danger) with platform version `15`, and Tuist tried to parse it.
+  - Fix: use `--path firefox-ios` (Tuist project lives in the `firefox-ios/` subdir).
+- 2026-02-06 07:50 CET: **Benchmark (Tuist cache + Xcode cache + Client focus)**
+  - Pre-step: `tuist clean --path firefox-ios binaries` + removed `benchmarks/DerivedDataTuistFennec`.
+  - Cache + generate:
+    - `tuist cache --path firefox-ios --configuration Fennec`
+    - `tuist generate --path firefox-ios --no-open --configuration Fennec --cache-profile all-possible Client`
+  - `hyperfine` (warmup 1, runs 3; DerivedData kept to use Xcode cache):
+    - Mean: **58.482 s ± 32.985 s**
+    - Range: **37.336 s … 96.489 s**
+- 2026-02-06 08:05 CET: **Benchmark (Tuist cache + Xcode cache, full workspace)**
+  - Pre-step: `tuist clean --path firefox-ios binaries` + removed `benchmarks/DerivedDataTuistFennec`.
+  - Cache + generate:
+    - `tuist cache --path firefox-ios --configuration Fennec`
+    - `tuist generate --path firefox-ios --no-open --configuration Fennec --cache-profile all-possible`
+  - `hyperfine` (warmup 1, runs 3; DerivedData kept to use Xcode cache):
+    - Mean: **27.142 s ± 3.728 s**
+    - Range: **23.996 s … 31.259 s**
+- 2026-02-06 08:30 CET: **Benchmark (no cache, no Xcode cache)**
+  - Pre-step: `tuist clean --path firefox-ios binaries` + removed `benchmarks/DerivedDataTuistFennec`.
+  - Generate without cache: `tuist generate --path firefox-ios --no-open --configuration Fennec --no-binary-cache`
+    - Warning: `--no-binary-cache` is deprecated; use `--cache-profile none` instead.
+  - `hyperfine` (warmup 1, runs 3; DerivedData wiped before each run via `--prepare rm -rf benchmarks/DerivedDataTuistFennec`):
+    - Mean: **279.843 s ± 3.789 s**
+    - Range: **276.491 s … 283.954 s**
