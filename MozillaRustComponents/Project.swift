@@ -37,70 +37,83 @@ func sourceFiles(_ path: String) -> SourceFilesList {
     .sourceFilesList(globs: [.glob(.relativeToManifest("\(path)/**/*.swift"))])
 }
 
+let includeFocusAppServices = Environment.TUIST_INCLUDE_FOCUS.getBoolean(default: false)
+
+let mozillaAppServicesTarget = Target.target(
+    name: "MozillaAppServices",
+    destinations: .iOS,
+    product: .framework,
+    bundleId: "org.mozilla.rustcomponents.MozillaAppServices",
+    deploymentTargets: deploymentTargets,
+    infoPlist: .default,
+    sources: sourceFiles("Sources/MozillaRustComponentsWrapper"),
+    dependencies: [
+        .xcframework(path: .relativeToManifest("Binaries/MozillaRustComponents.xcframework")),
+        .external(name: "Glean")
+    ],
+    settings: targetSettings(
+        additional: [
+            "SWIFT_VERSION": "5.10",
+            "SWIFT_STRICT_CONCURRENCY": "minimal",
+            "OTHER_LDFLAGS": .string("$(inherited) -lc++ -lswiftCompatibility56 -lswiftCompatibilityPacks"),
+            "LIBRARY_SEARCH_PATHS": .array([
+                "$(inherited)",
+                "$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)"
+            ])
+        ]
+    )
+)
+
+let focusAppServicesTarget = Target.target(
+    name: "FocusAppServices",
+    destinations: .iOS,
+    product: .framework,
+    bundleId: "org.mozilla.rustcomponents.FocusAppServices",
+    deploymentTargets: deploymentTargets,
+    infoPlist: .default,
+    sources: sourceFiles("Sources/FocusRustComponentsWrapper"),
+    dependencies: [
+        .xcframework(path: .relativeToManifest("Binaries/FocusRustComponents.xcframework"))
+    ],
+    settings: targetSettings(
+        additional: [
+            "SWIFT_VERSION": "5.10",
+            "SWIFT_STRICT_CONCURRENCY": "minimal"
+        ]
+    )
+)
+
+let mozillaRustComponentsTestsTarget = Target.target(
+    name: "MozillaRustComponentsTests",
+    destinations: .iOS,
+    product: .unitTests,
+    bundleId: "org.mozilla.rustcomponents.MozillaRustComponentsTests",
+    deploymentTargets: deploymentTargets,
+    infoPlist: .default,
+    sources: sourceFiles("Tests/MozillaRustComponentsTests"),
+    dependencies: [
+        .target(name: "MozillaAppServices")
+    ],
+    settings: targetSettings(
+        additional: [
+            "SWIFT_VERSION": "5.10",
+            "SWIFT_STRICT_CONCURRENCY": "minimal"
+        ]
+    )
+)
+
+var targets: [Target] = [
+    mozillaAppServicesTarget,
+    mozillaRustComponentsTestsTarget
+]
+
+if includeFocusAppServices {
+    targets.insert(focusAppServicesTarget, at: 1)
+}
+
 let project = Project(
     name: "MozillaRustComponents",
     settings: projectSettings,
-    targets: [
-        Target.target(
-            name: "MozillaAppServices",
-            destinations: .iOS,
-            product: .framework,
-            bundleId: "org.mozilla.rustcomponents.MozillaAppServices",
-            deploymentTargets: deploymentTargets,
-            infoPlist: .default,
-            sources: sourceFiles("Sources/MozillaRustComponentsWrapper"),
-            dependencies: [
-                .xcframework(path: .relativeToManifest("Binaries/MozillaRustComponents.xcframework")),
-                .external(name: "Glean")
-            ],
-            settings: targetSettings(
-                additional: [
-                    "SWIFT_VERSION": "5.10",
-                    "SWIFT_STRICT_CONCURRENCY": "minimal",
-                    "OTHER_LDFLAGS": .string("$(inherited) -lc++ -lswiftCompatibility56 -lswiftCompatibilityPacks"),
-                    "LIBRARY_SEARCH_PATHS": .array([
-                        "$(inherited)",
-                        "$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)"
-                    ])
-                ]
-            )
-        ),
-        Target.target(
-            name: "FocusAppServices",
-            destinations: .iOS,
-            product: .framework,
-            bundleId: "org.mozilla.rustcomponents.FocusAppServices",
-            deploymentTargets: deploymentTargets,
-            infoPlist: .default,
-            sources: sourceFiles("Sources/FocusRustComponentsWrapper"),
-            dependencies: [
-                .xcframework(path: .relativeToManifest("Binaries/FocusRustComponents.xcframework"))
-            ],
-            settings: targetSettings(
-                additional: [
-                    "SWIFT_VERSION": "5.10",
-                    "SWIFT_STRICT_CONCURRENCY": "minimal"
-                ]
-            )
-        ),
-        Target.target(
-            name: "MozillaRustComponentsTests",
-            destinations: .iOS,
-            product: .unitTests,
-            bundleId: "org.mozilla.rustcomponents.MozillaRustComponentsTests",
-            deploymentTargets: deploymentTargets,
-            infoPlist: .default,
-            sources: sourceFiles("Tests/MozillaRustComponentsTests"),
-            dependencies: [
-                .target(name: "MozillaAppServices")
-            ],
-            settings: targetSettings(
-                additional: [
-                    "SWIFT_VERSION": "5.10",
-                    "SWIFT_STRICT_CONCURRENCY": "minimal"
-                ]
-            )
-        )
-    ],
+    targets: targets,
     resourceSynthesizers: []
 )

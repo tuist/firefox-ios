@@ -179,7 +179,12 @@ let project = Project(
                 .target(name: "TestKit")
             ]
         ),
-        frameworkTarget(name: "TestKit"),
+        frameworkTarget(
+            name: "TestKit",
+            dependencies: [
+                .sdk(name: "XCTest", type: .framework)
+            ]
+        ),
         frameworkTarget(
             name: "ToolbarKit",
             dependencies: [

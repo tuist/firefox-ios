@@ -128,3 +128,6 @@
   - Results:
     - Mean: **25.419 s ± 0.908 s**
     - Range: **24.728 s … 26.447 s**
+- 2026-02-06 07:12 CET: `tuist cache --path firefox-ios --configuration Fennec` still failed after excluding `FocusAppServices`, due to `TestKit` importing XCTest. Fixed by adding `XCTest` as an SDK dependency for `TestKit`.
+- 2026-02-06 07:18 CET: Made `FocusAppServices` optional in `MozillaRustComponents/Project.swift` via `TUIST_INCLUDE_FOCUS` (default `false`) to avoid the duplicate xcframework output name clash in cache builds. Run with `TUIST_INCLUDE_FOCUS=1` when building Focus.
+- 2026-02-06 07:24 CET: `tuist cache --path firefox-ios --configuration Fennec` now succeeds end-to-end and stores 4 cacheable BrowserKit frameworks (`ContentBlockingGenerator`, `JWTKit`, `MenuKit`, `VoiceSearchKit`).
